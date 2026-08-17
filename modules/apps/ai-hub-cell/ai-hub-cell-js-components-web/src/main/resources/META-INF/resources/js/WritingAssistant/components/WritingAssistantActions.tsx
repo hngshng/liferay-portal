@@ -8,13 +8,37 @@ import React, {useEffect, useState} from 'react';
 import {EActionType, IActionGroup} from '../types';
 import WritingAssistantBalloon from './WritingAssistantBalloon';
 
+// Option values are what the agents' LLM prompts interpolate ({{tone}} /
+// {{targetLanguage}}), so they stay English regardless of the UI locale.
+
+const TONE_OPTIONS = [
+	{label: 'Professional', value: 'professional'},
+	{label: 'Casual', value: 'casual'},
+	{label: 'Friendly', value: 'friendly'},
+	{label: 'Confident', value: 'confident'},
+	{label: 'Empathetic', value: 'empathetic'},
+];
+
+const TRANSLATE_OPTIONS = [
+	{label: 'English', value: 'English'},
+	{label: '日本語', value: 'Japanese'},
+	{label: 'Español', value: 'Spanish'},
+	{label: 'Français', value: 'French'},
+	{label: 'Deutsch', value: 'German'},
+	{label: 'Português', value: 'Portuguese'},
+	{label: '中文', value: 'Chinese (Simplified)'},
+];
+
 export default function WritingAssistantActions({
 	containerRef,
 	handleActionClick,
 	hideBalloon,
 }: {
 	containerRef: HTMLElement;
-	handleActionClick: (type: EActionType) => Promise<void>;
+	handleActionClick: (
+		type: EActionType,
+		extraContext?: Record<string, string>
+	) => Promise<void>;
 	hideBalloon: () => void;
 }) {
 	const [active, setActive] = useState(true);
@@ -35,8 +59,10 @@ export default function WritingAssistantActions({
 					type: EActionType.FIX_SPELLING_AND_GRAMMAR,
 				},
 				{
-					disabled: true,
+					disabled: false,
 					name: Liferay.Language.get('translate-to'),
+					optionContextKey: 'targetLanguage',
+					options: TRANSLATE_OPTIONS,
 					symbolLeft: 'automatic-translate',
 					symbolRight: 'angle-right-small',
 					type: EActionType.TRANSLATE_TO,
@@ -59,8 +85,10 @@ export default function WritingAssistantActions({
 					type: EActionType.MAKE_LONGER,
 				},
 				{
-					disabled: true,
+					disabled: false,
 					name: Liferay.Language.get('change-tone'),
+					optionContextKey: 'tone',
+					options: TONE_OPTIONS,
 					symbolRight: 'angle-right-small',
 					type: EActionType.CHANGE_TONE,
 				},

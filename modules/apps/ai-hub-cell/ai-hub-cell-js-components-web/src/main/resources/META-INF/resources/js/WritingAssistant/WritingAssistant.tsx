@@ -137,6 +137,14 @@ export default class WritingAssistant extends Plugin {
 
 			writer.setSelection(endPosition);
 
+			// A stale marker survives when the previous result was never
+			// accepted or discarded; adding over it throws
+			// writer-addmarker-marker-exists and loses the whole replacement.
+
+			if (model.markers.has('writingAssistantHighlight')) {
+				writer.removeMarker('writingAssistantHighlight');
+			}
+
 			writer.addMarker('writingAssistantHighlight', {
 				affectsData: false,
 				range: newRange,
@@ -255,13 +263,17 @@ export default class WritingAssistant extends Plugin {
 			root.render(
 				<WritingAssistantActions
 					containerRef={reactView.element}
-					handleActionClick={async (type: EActionType) => {
+					handleActionClick={async (
+						type: EActionType,
+						extraContext?: Record<string, string>
+					) => {
 						this.lastActionType = type;
 
 						await postAgentInstance(
 							this.contentSelection,
 							this.eventSourceReference,
-							type
+							type,
+							extraContext
 						);
 					}}
 					hideBalloon={() => this._hideBalloon(balloon)}

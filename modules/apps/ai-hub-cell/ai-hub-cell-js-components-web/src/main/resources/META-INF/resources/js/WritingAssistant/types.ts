@@ -10,12 +10,33 @@ export enum EActionType {
 	IMPROVE_WRITING = 'L_IMPROVE_WRITING',
 	MAKE_LONGER = 'L_MAKE_LONGER',
 	MAKE_SHORTER = 'L_MAKE_SHORTER',
-	TRANSLATE_TO = 'L_TRANSLATE_TO',
+
+	// The product ships no L_TRANSLATE_TO agent (L_TRANSLATE_CONTENT
+	// translates the whole edited entry, not a selection), so Translate To
+	// invokes the workspace-seeded agent instead (see the aihub workspace's
+	// resource/ai-hub-agent/CUSTOM_TRANSLATE_TO).
+
+	TRANSLATE_TO = 'CUSTOM_TRANSLATE_TO',
+}
+
+export interface IActionOption {
+
+	/** Display label of the submenu entry. */
+	label: string;
+
+	/** Value posted to the agent under the action's `optionContextKey`. */
+	value: string;
 }
 
 export interface IAction {
 	disabled?: boolean;
 	name: string;
+
+	/** Agent context key the selected option's value is posted under. */
+	optionContextKey?: string;
+
+	/** Submenu entries; the action posts only after one is picked. */
+	options?: IActionOption[];
 	symbolLeft?: string;
 	symbolRight?: string;
 	type: EActionType;

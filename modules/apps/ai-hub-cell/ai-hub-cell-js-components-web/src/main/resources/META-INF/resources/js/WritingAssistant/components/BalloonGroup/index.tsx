@@ -7,7 +7,7 @@ import ClayIcon, {ClayIconSpriteContext} from '@clayui/icon';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import React, {useState} from 'react';
 
-import {EActionType, IAction} from '../../types';
+import {EActionType, IAction, IActionOption} from '../../types';
 
 function BalloonGroup({
 	children,
@@ -15,9 +15,15 @@ function BalloonGroup({
 	header,
 }: {
 	children: IAction[];
-	handleItemClick: (type: EActionType) => Promise<void>;
+	handleItemClick: (
+		type: EActionType,
+		extraContext?: Record<string, string>
+	) => Promise<void>;
 	header: string;
 }) {
+	const [expanded, setExpanded] = useState<{type: EActionType | ''}>({
+		type: '',
+	});
 	const [isLoading, setIsLoading] = useState<{type: EActionType | ''}>({
 		type: '',
 	});
@@ -26,8 +32,27 @@ function BalloonGroup({
 		if (child.disabled) {
 			return;
 		}
+
+		if (child.options?.length) {
+			setExpanded({
+				type: expanded.type === child.type ? '' : child.type,
+			});
+
+			return;
+		}
+
 		setIsLoading({type: child.type});
 		await handleItemClick(child.type);
+	};
+
+	const handleOptionClick = async (child: IAction, option: IActionOption) => {
+		setIsLoading({type: child.type});
+		await handleItemClick(
+			child.type,
+			child.optionContextKey
+				? {[child.optionContextKey]: option.value}
+				: undefined
+		);
 	};
 
 	return (
@@ -43,63 +68,92 @@ function BalloonGroup({
 					{children &&
 						children.map((child) => {
 							const loadingTest = isLoading.type === child.type;
+							const expandedTest = expanded.type === child.type;
 
 							return (
-								<li
-									className={
-										(child.disabled
-											? 'balloon-group-item balloon-group-item-disabled'
-											: 'balloon-group-item') +
-										(loadingTest
-											? ' balloon-group-item-loading'
-											: '')
-									}
-									key={child.name}
-								>
-									{child.symbolLeft ? (
-										<ClayIcon
-											className="balloon-group-item-icon"
-											height={17}
-											style={{fill: '#6b6c7e'}}
-											symbol={child.symbolLeft}
-											width={17}
-										/>
-									) : (
-										<span
-											className="balloon-group-item-icon"
-											style={{
-												display: 'inline-block',
-												width: 17,
-											}}
-										></span>
-									)}
-
-									<button
+								<React.Fragment key={child.name}>
+									<li
 										className={
-											child.disabled
-												? 'balloon-group-item-button balloon-group-item-button-disabled'
-												: 'balloon-group-item-button'
+											(child.disabled
+												? 'balloon-group-item balloon-group-item-disabled'
+												: 'balloon-group-item') +
+											(loadingTest
+												? ' balloon-group-item-loading'
+												: '')
 										}
-										disabled={child.disabled || loadingTest}
-										onClick={() => handleClick(child)}
 									>
-										{child.name}
-									</button>
-
-									<span className="balloon-group-item-icon-right">
-										{loadingTest ? (
-											<ClayLoadingIndicator className="mb-0 mt-0" />
-										) : child.symbolRight ? (
+										{child.symbolLeft ? (
 											<ClayIcon
 												className="balloon-group-item-icon"
 												height={17}
 												style={{fill: '#6b6c7e'}}
-												symbol={child.symbolRight}
+												symbol={child.symbolLeft}
 												width={17}
 											/>
-										) : null}
-									</span>
-								</li>
+										) : (
+											<span
+												className="balloon-group-item-icon"
+												style={{
+													display: 'inline-block',
+													width: 17,
+												}}
+											></span>
+										)}
+
+										<button
+											className={
+												child.disabled
+													? 'balloon-group-item-button balloon-group-item-button-disabled'
+													: 'balloon-group-item-button'
+											}
+											disabled={
+												child.disabled || loadingTest
+											}
+											onClick={() => handleClick(child)}
+										>
+											{child.name}
+										</button>
+
+										<span className="balloon-group-item-icon-right">
+											{loadingTest ? (
+												<ClayLoadingIndicator className="mb-0 mt-0" />
+											) : child.symbolRight ? (
+												<ClayIcon
+													className="balloon-group-item-icon"
+													height={17}
+													style={{fill: '#6b6c7e'}}
+													symbol={
+														expandedTest
+															? 'angle-down-small'
+															: child.symbolRight
+													}
+													width={17}
+												/>
+											) : null}
+										</span>
+									</li>
+
+									{expandedTest &&
+										!loadingTest &&
+										child.options?.map((option) => (
+											<li
+												className="balloon-group-item balloon-group-suboption"
+												key={option.value}
+											>
+												<button
+													className="balloon-group-item-button"
+													onClick={() =>
+														handleOptionClick(
+															child,
+															option
+														)
+													}
+												>
+													{option.label}
+												</button>
+											</li>
+										))}
+								</React.Fragment>
 							);
 						})}
 				</ul>

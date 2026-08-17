@@ -43,7 +43,8 @@ export async function createEventSource() {
 export async function postAgentInstance(
 	content: string,
 	eventSourceReference: string,
-	type: EActionType
+	type: EActionType,
+	extraContext?: Record<string, string>
 ) {
 	const authorizationToken = await postAuthorizationToken();
 
@@ -58,6 +59,7 @@ export async function postAgentInstance(
 				agentDefinitionExternalReferenceCode: type,
 				context: {
 					text: content,
+					...extraContext,
 				},
 				sseEventSinkKey: eventSourceReference,
 			}),

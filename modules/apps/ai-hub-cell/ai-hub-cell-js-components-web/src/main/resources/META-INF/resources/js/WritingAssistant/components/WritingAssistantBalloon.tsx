@@ -15,7 +15,10 @@ function WritingAssistantBalloon({
 	handleActionClick,
 }: {
 	actionsGroup: IActionGroup[];
-	handleActionClick: (type: EActionType) => Promise<void>;
+	handleActionClick: (
+		type: EActionType,
+		extraContext?: Record<string, string>
+	) => Promise<void>;
 }) {
 	return (
 		<div className="balloon-container">
